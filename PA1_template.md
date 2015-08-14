@@ -87,6 +87,8 @@ sum(!complete.cases(df))
 
 2. Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
 
+To fill in the missing values, one way is to find the row where there is a missing step value then replace that value with the corresponding average steps for that interval.
+
 3. Create a new dataset that is equal to the original dataset but with the missing data filled in.
 
 ```r

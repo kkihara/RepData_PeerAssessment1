@@ -280,8 +280,13 @@ plot(intervals$interval, intervals$steps, type=&quot;l&quot;)
 </code></pre>
 
 <ol>
-<li><p>Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.</p></li>
-<li><p>Create a new dataset that is equal to the original dataset but with the missing data filled in.</p></li>
+<li>Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.</li>
+</ol>
+
+<p>To fill in the missing values, one way is to find the row where there is a missing step value then replace that value with the corresponding average steps for that interval.</p>
+
+<ol>
+<li>Create a new dataset that is equal to the original dataset but with the missing data filled in.</li>
 </ol>
 
 <pre><code class="r">df_impute &lt;- df
