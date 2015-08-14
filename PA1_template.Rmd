@@ -7,19 +7,101 @@ output:
 
 
 ## Loading and preprocessing the data
-
-
+```{r, echo = TRUE, message = FALSE}
+library(dplyr)
+library(ggplot2)
+dat <- read.csv("activity.csv")
+df <- tbl_df(dat)
+```
 
 ## What is mean total number of steps taken per day?
+1. Calculate the total number of steps taken per day
 
+2. If you do not understand the difference between a histogram and a barplot, research the difference between them. Make a histogram of the total number of steps taken each day
+```{r, echo = TRUE}
+byDay <- group_by(df, date)
+steps <- summarize(byDay, steps=sum(steps, na.rm=TRUE))
+ggplot(steps, aes(x=steps)) + 
+    ggtitle("Histogram of steps by day") +
+    geom_histogram(binwidth = 2500)
+```
+
+
+3. Calculate and report the mean and median of the total number of steps taken per day
+```{r, echo = TRUE}
+mean(steps$steps)
+```
+```{r, echo = TRUE}
+median(steps$steps)
+```
 
 
 ## What is the average daily activity pattern?
+1. Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+```{r, echo = TRUE}
+byInterval <- group_by(df, interval)
+intervals <- summarize(byInterval, steps=mean(steps, na.rm=TRUE))
+plot(intervals$interval, intervals$steps, type="l")
+```
 
-
+2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+```{r, echo = TRUE}
+filter(intervals, interval, steps == max(steps))
+```
 
 ## Imputing missing values
+1. Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
+```{r, echo = TRUE}
+sum(!complete.cases(df))
+```
 
+2. Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
 
+3. Create a new dataset that is equal to the original dataset but with the missing data filled in.
+```{r, echo = TRUE}
+df_impute <- df
+for (i in 1:dim(df_impute)[1]){
+    if (is.na(df_impute$steps[i])) {
+        df_impute$steps[i] <- intervals[intervals["interval"] == 
+                                    df_impute[i,]$interval,]$steps
+    }
+}
+df_impute
 
+```
+
+4. Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
+```{r, echo = TRUE}
+byDay_imp <- group_by(df_impute, date)
+steps_imp <- summarize(byDay_imp, steps=sum(steps))
+ggplot(steps_imp, aes(x=steps)) + 
+    ggtitle("Histogram of steps by day with imputed data") +
+    geom_histogram(binwidth = 2500)
+```
+```{r, echo = TRUE}
+mean(steps_imp$steps)
+```
+```{r, echo = TRUE}
+median(steps_imp$steps)
+```
+Imputing the average number of steps for the interval makes the mean equal the median. Also, it makes more of the days have the average number of total steps taken per day, making the graph more Gaussian shpaed.
 ## Are there differences in activity patterns between weekdays and weekends?
+1. Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
+```{r, echo = TRUE}
+weekends <- c("Saturday", "Sunday")
+df_impute <- mutate(df_impute, DayOfWeek=weekdays(as.Date(df_impute$date)))
+df_impute$DayOfWeek <- factor((df_impute$DayOfWeek %in% weekends),
+                              levels = c(FALSE, TRUE),
+                              labels = c("weekday", "weekend"))
+summary(df_impute$DayOfWeek)
+```
+
+2. Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). See the README file in the GitHub repository to see an example of what this plot should look like using simulated data.
+```{r, echo = TRUE}
+library(lattice)
+byIntAndDay <- group_by(df_impute, interval, DayOfWeek)
+x <- summarize(byIntAndDay, steps=mean(steps))
+xyplot(x$steps~x$interval|x$DayOfWeek, type="l",
+       xlab="Interval", ylab="Number of steps",
+       layout=c(1,2))
+```
